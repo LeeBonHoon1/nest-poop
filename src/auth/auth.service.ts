@@ -16,6 +16,7 @@ export class AuthService {
     const splitToken = header.split(' ');
     const prefix = isBearer ? 'Bearer' : 'Basic';
     if (splitToken.length !== 2 || splitToken[0] !== prefix) {
+      console.log(splitToken.length, splitToken[0], '123');
       throw new UnauthorizedException('잘못된 토큰입니다!');
     }
 
@@ -79,7 +80,7 @@ export class AuthService {
     return this.loginUser(newUser);
   }
 
-  decodedBasicToken(base64String: string) {
+  decodeBasicToken(base64String: string) {
     const decoded = Buffer.from(base64String, 'base64').toString('utf-8');
 
     const split = decoded.split(':');
@@ -95,9 +96,13 @@ export class AuthService {
   }
 
   verifyToken(token: string) {
-    return this.jwtService.verify(token, {
-      secret: JWT_SECREET,
-    });
+    try {
+      return this.jwtService.verify(token, {
+        secret: JWT_SECREET,
+      });
+    } catch (e) {
+      throw new UnauthorizedException('토큰이 만료됐거나 잘못된 토큰입니다.');
+    }
   }
 
   roateToken(token: string, isRefreshToken: boolean) {
